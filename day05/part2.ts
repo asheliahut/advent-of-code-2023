@@ -2,9 +2,18 @@
 // Advent of Code 2023 day 5 part 2
 
 import { join as pathJoin } from "node:path";
-import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads";
+import {
+  Worker,
+  isMainThread,
+  parentPort,
+  workerData,
+} from "node:worker_threads";
 
-function* generateSeedBatches(seeds: string[], batchSize: number, offset: number) {
+function* generateSeedBatches(
+  seeds: string[],
+  batchSize: number,
+  offset: number,
+) {
   let currentSeed = parseInt(seeds[0]);
   let totalSeeds = 0;
 
@@ -62,11 +71,9 @@ const seeds = trimmedLines[0].split(": ")[1].split(" ");
 
 if (isMainThread) {
   // This code is executed in the main thread
-  
-  
 
   // Split seeds into batches and create workers
-  
+
   let lowestLocation = Infinity;
   const workerPromises = [];
   // compute the range of seeds to be processed by each worker from the ranges
@@ -74,34 +81,34 @@ if (isMainThread) {
   let totalSeeds = 0;
 
   for (let i = 0; i < seeds.length; i += 2) {
-    const length = parseInt(seeds[i+1]);
+    const length = parseInt(seeds[i + 1]);
     totalSeeds += length;
   }
 
   console.log(totalSeeds);
 
-  const offsetWorkers = Math.ceil(totalSeeds / 24);
+  const batch = Math.ceil(totalSeeds / 24);
 
-  for (let seedBatch = 0; seedBatch < totalSeeds + offsetWorkers; seedBatch += offsetWorkers) {
+  for (let offset = 0; offset < totalSeeds + batch; offset += batch) {
     // console.log({ seedBatch, offsetWorkers });
     const workerPromise = new Promise<void>((resolve, reject) => {
       const worker = new Worker(import.meta.path, {
         workerData: {
-          seedBatch,
-          offsetWorkers,
+          offset,
+          batch: batch,
         },
       });
 
-      worker.on('message', (location) => {
+      worker.on("message", (location) => {
         lowestLocation = Math.min(lowestLocation, location);
       });
 
-      worker.on('error', (err) => {
+      worker.on("error", (err) => {
         console.error(err);
         reject(err);
       });
 
-      worker.on('exit', (code) => {
+      worker.on("exit", (code) => {
         if (code !== 0) {
           console.error(new Error(`Worker stopped with exit code ${code}`));
           reject(new Error(`Worker stopped with exit code ${code}`));
@@ -119,13 +126,10 @@ if (isMainThread) {
     console.log(`Lowest location is ${lowestLocation}`);
     await writeOutput(lowestLocation.toString());
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error("An error occurred:", error);
   }
-
 } else {
-
-  
-    // create the seed-to-soil map from n number of lines beflow "seed-to-soil map:"
+  // create the seed-to-soil map from n number of lines beflow "seed-to-soil map:"
   const seedToSoilMap: number[][] = [];
   const soilToFertilizerMap: number[][] = [];
   const fertilizerToWaterMap: number[][] = [];
@@ -220,10 +224,10 @@ if (isMainThread) {
 
   // This code is executed in worker threads
 
-  const { seedBatch, offsetWorkers } = workerData;
+  const { offset, batch } = workerData;
 
-  const seedBatchGenerator = generateSeedBatches(seeds, offsetWorkers, seedBatch);
-  
+  const seedBatchGenerator = generateSeedBatches(seeds, batch, offset);
+
   let batchLowestLocation = Infinity;
   for (const seed of seedBatchGenerator) {
     let nextVal = seed;
@@ -235,7 +239,7 @@ if (isMainThread) {
     nextVal = mapToNext(nextVal, lightToTemperatureMap);
     nextVal = mapToNext(nextVal, temperatureToHumidityMap);
     nextVal = mapToNext(nextVal, humidityToLocationMap);
-  
+
     batchLowestLocation = Math.min(batchLowestLocation, nextVal);
   }
 
