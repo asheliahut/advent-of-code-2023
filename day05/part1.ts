@@ -167,8 +167,5 @@ for (const [seed, location] of locationPerSeed) {
 
 output = `The seed with the lowest location number is ${lowestLocationSeed} with a location number of ${lowestLocation}`;
 
-
-
-
 console.log(output);
 await writeOutput(output);
