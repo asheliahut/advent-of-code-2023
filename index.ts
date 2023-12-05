@@ -9,7 +9,7 @@ const rootPath = import.meta.dir;
 
 async function runFile(filePath: string, day: string, part: number) {
   console.log(
-    chalk.green(`Running day ${day} part ${part}\n\n------Output------`)
+    chalk.green(`Running day ${day} part ${part}\n\n------Output------`),
   );
   const proc = Bun.spawn(["bun", "run", filePath], {
     onExit(_proc, _exitCode, _signalCode, error) {
@@ -65,20 +65,20 @@ program
 
     let part1FileReplaced = part1File.replaceAll(
       "TEMPLATE REPLACE 1",
-      `Advent of Code 2023 day ${theDay} part 1`
+      `Advent of Code 2023 day ${theDay} part 1`,
     );
     part1FileReplaced = part1FileReplaced.replaceAll(
       "TEMPLATE REPLACE 2",
-      `Begin day ${theDay} part 1 code`
+      `Begin day ${theDay} part 1 code`,
     );
 
     let part2FileReplaced = part2File.replaceAll(
       "TEMPLATE REPLACE 1",
-      `Advent of Code 2023 day ${theDay} part 2`
+      `Advent of Code 2023 day ${theDay} part 2`,
     );
     part2FileReplaced = part2FileReplaced.replaceAll(
       "TEMPLATE REPLACE 2",
-      `Begin day ${theDay} part 2 code`
+      `Begin day ${theDay} part 2 code`,
     );
 
     await Bun.write(part1FilePath, part1FileReplaced);
