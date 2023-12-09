@@ -21,30 +21,21 @@ let output: string = "";
 // Begin day 9 part 1 code
 
 const extrapolateNextValue = (history: number[]): number => {
-  const diffs: number[][] = [history];
+  const diffs: number[] = [history.at(-1)!];
   let currentArray: number[] = history;
   let nextArray: number[] = [];
 
-  if (currentArray.every((value) => value === 0)) {
-    console.log("edge case");
-    return 0;
-  }
   while (!currentArray.every((value) => value === 0)) {
     for (let i = 0; i < currentArray.length - 1; i++) {
       nextArray.push(currentArray[i + 1] - currentArray[i]);
     }
 
-    diffs.push(nextArray);
+    diffs.push(nextArray.at(-1)!);
     currentArray = nextArray;
     nextArray = [];
   }
 
-  let nextValue = 0;
-  for (const diff of diffs) {
-    nextValue += diff.at(-1)!;
-  }
-
-  return nextValue;
+  return diffs.reverse().reduce((prev, curr) => prev + curr);
 };
 
 const histories: number[][] = lines.map((line) => {

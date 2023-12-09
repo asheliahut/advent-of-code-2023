@@ -17,11 +17,10 @@ const writeOutput = async (output: string) => {
 const input = await readInput();
 const lines = input.split("\n");
 let output: string = "";
-
 // Begin day 9 part 2 code
 
 const extrapolatePastValue = (history: number[]): number => {
-  let diffs: number[][] = [history];
+  const diffs: number[] = [history[0]!];
   let currentArray: number[] = history;
   let nextArray: number[] = [];
 
@@ -30,18 +29,12 @@ const extrapolatePastValue = (history: number[]): number => {
       nextArray.push(currentArray[i + 1] - currentArray[i]);
     }
 
-    diffs.push(nextArray);
+    diffs.push(nextArray[0]);
     currentArray = nextArray;
     nextArray = [];
   }
 
-  let prevValue = 0;
-
-  for (let i = diffs.length - 1; i >= 0; i--) {
-    prevValue = diffs[i].at(0)! - prevValue;
-  }
-
-  return prevValue;
+  return diffs.reverse().reduce((prev, curr) => curr - prev);
 };
 
 const histories: number[][] = lines.map((line) => {
