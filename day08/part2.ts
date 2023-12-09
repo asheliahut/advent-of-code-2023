@@ -40,31 +40,38 @@ function getStartingLocations(map: Map<string, [string, string]>): string[] {
   return startingLocations;
 }
 
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+function lcm(a: number, b: number): number {
+  return (a * b) / gcd(a, b);
+}
+
 const lrInstructions = lines[0].split("");
 const lrInstructionsLength = lrInstructions.length;
 const linesMinusInstructions = lines.slice(2);
 
 const map = createMapFromLines(linesMinusInstructions);
-
-let steps = 0;
-let currentInstruction: string = "";
 let startingLocations = getStartingLocations(map);
 
-// loop through all starting locations simultaneously til all arrive at a location ending in Z
-while (!startingLocations.every((location) => location.endsWith("Z"))) {
-  startingLocations = startingLocations.map((location) => {
-    const [left, right] = map.get(location) as [string, string];
-    currentInstruction = lrInstructions[steps % lrInstructionsLength]; // Use the cached length
-    if (currentInstruction === "L") {
-      return left;
-    } else {
-      return right;
-    }
-  });
-  steps++;
+let cycleLengths: number[] = [];
+
+for (let start of startingLocations) {
+  let steps = 0;
+  let currentLocation = start;
+  while (!currentLocation.endsWith("Z")) {
+    const [left, right] = map.get(currentLocation) as [string, string];
+    currentLocation =
+      lrInstructions[steps % lrInstructionsLength] === "L" ? left : right;
+    steps++;
+  }
+  cycleLengths.push(steps);
 }
 
-output = steps.toString();
+let totalSteps = cycleLengths.reduce(lcm);
+
+output = totalSteps.toString();
 
 console.log(output);
 await writeOutput(output);
