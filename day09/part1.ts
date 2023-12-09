@@ -43,12 +43,9 @@ const histories: number[][] = lines.map((line) => {
   return history;
 });
 
-let sum: number = 0;
-for (const hist of histories) {
-  sum += extrapolateNextValue(hist);
-}
-
-output = sum.toString();
+output = histories
+  .reduce((acc, curr) => acc + extrapolateNextValue(curr), 0)
+  .toString();
 
 console.log(output);
 await writeOutput(output);
