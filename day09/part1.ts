@@ -17,7 +17,6 @@ const writeOutput = async (output: string) => {
 const input = await readInput();
 const lines = input.split("\n");
 let output: string = "";
-
 // Begin day 9 part 1 code
 
 const extrapolateNextValue = (history: number[]): number => {
