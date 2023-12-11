@@ -2,7 +2,6 @@
 // Advent of Code 2023 day 11 part 1
 
 import { join as pathJoin } from "node:path";
-import { DijkstraCalculator } from "dijkstra-calculator";
 
 const dirname = import.meta.dir;
 
@@ -27,21 +26,6 @@ function computeManhattanDistance(
   y2: number,
 ): number {
   return Math.abs(x1 - x2) + Math.abs(y1 - y2);
-}
-
-function getLocationOfGalaxy(
-  galaxiesArray: string[][],
-  galaxy: string,
-): [number, number] {
-  for (let i = 0; i < galaxiesArray.length; i++) {
-    for (let j = 0; j < galaxiesArray[i].length; j++) {
-      if (galaxiesArray[i][j] === galaxy) {
-        return [i, j];
-      }
-    }
-  }
-
-  throw new Error("Galaxy not found");
 }
 
 const twoDArray = lines.map((line) => line.split(""));
@@ -81,30 +65,33 @@ for (let i = 0; i < twoDArray.length; i++) {
 
 // loop over the expanded galaxy and get the pairs of # galaxies
 // replace every # with a number
+const mapOfGalaxies: Map<number, [number, number]> = new Map();
+
 let galaxySeen: number = 1;
 for (let i = 0; i < expandedGalaxy.length; i++) {
   for (let j = 0; j < expandedGalaxy[i].length; j++) {
     if (expandedGalaxy[i][j] === "#") {
       expandedGalaxy[i][j] = galaxySeen.toString();
+      mapOfGalaxies.set(galaxySeen, [i, j]);
       galaxySeen++;
     }
   }
 }
 
 // get all possible pairs of galaxies from number of galaxies seen
-const galaxyPairs: Set<string> = new Set();
+const galaxyPairs: Set<[number, number]> = new Set();
 for (let i = 1; i < galaxySeen; i++) {
   for (let j = i + 1; j < galaxySeen; j++) {
-    galaxyPairs.add(`${i},${j}`);
+    galaxyPairs.add([i, j]);
   }
 }
 
 let minDistanceSum = 0;
 
 for (const pair of galaxyPairs) {
-  const [galaxy1, galaxy2] = pair.split(",");
-  const galaxy1Location = getLocationOfGalaxy(expandedGalaxy, galaxy1);
-  const galaxy2Location = getLocationOfGalaxy(expandedGalaxy, galaxy2);
+  const [galaxy1, galaxy2] = pair;
+  const galaxy1Location = mapOfGalaxies.get(galaxy1)!;
+  const galaxy2Location = mapOfGalaxies.get(galaxy2)!;
   minDistanceSum += computeManhattanDistance(
     galaxy1Location[0],
     galaxy1Location[1],
