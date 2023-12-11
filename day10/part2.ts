@@ -362,25 +362,7 @@ console.log(indexTupleOfStartingPosition, startingDirections);
 
 let gridToTraverse: string[][] = initialtwoDArray;
 
-// add a border of . around the grid
-// gridToTraverse = gridToTraverse.map((row) => {
-//   row.unshift(".");
-//   row.push(".");
-//   return row;
-// });
-// gridToTraverse.unshift(Array(gridToTraverse[0].length).fill(" "));
-// gridToTraverse.push(Array(gridToTraverse[0].length).fill(" "));
-
-// gridToTraverse.forEach((row) => console.log(row));
-
 const stepGrid: string[][] = [];
-
-// if (checkValueIn2DArray(gridToTraverse, rowIndex - 1, colIndex)) {
-//   startingDirections.push("up");
-// }
-// if (checkValueIn2DArray(gridToTraverse, rowIndex + 1, colIndex)) {
-//   startingDirections.push("down");
-// }
 
 for (let i = 0; i < gridToTraverse.length; i++) {
   let newRow: string[] = [];
