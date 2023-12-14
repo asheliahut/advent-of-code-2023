@@ -6,8 +6,8 @@ import { join as pathJoin } from "node:path";
 const dirname = import.meta.dir;
 
 const readInput = async () => {
-  return Bun.file(pathJoin(dirname, "example.txt")).text();
-  //return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
+  // return Bun.file(pathJoin(dirname, "example.txt")).text();
+  return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
 };
 
 const writeOutput = async (output: string) => {
@@ -31,7 +31,6 @@ class HotSpringGrid {
     let total = 0;
     for (let i = 0; i < this.grid.length; i++) {
       const rowPossibleArrangements = this.grid[i].getArrangementsPossible();
-      console.log(rowPossibleArrangements);
       total += rowPossibleArrangements;
     }
     return total;
@@ -49,7 +48,7 @@ class HotSpringRow {
     for (let i = 0; i < 4; i++) {
       this.brokenRow = this.brokenRow.concat("?" + initialBrokenRow);
     }
-    console.log(this.brokenRow);
+    // console.log(this.brokenRow);
     this.possibleArrangementOfDamaged = row
       .split(" ")[1]
       .split(",")
@@ -84,70 +83,71 @@ class HotSpringRow {
    * @returns number
    */
   public getArrangementsPossible(): number {
-    return this.countValidArrangements(this.brokenRow, 0);
+    return this.memoCountValidArrangements(this.brokenRow, this.possibleArrangementOfDamaged);
   }
 
-  private countValidArrangements(row: string, index: number): number {
-    // Create a key for the cache
-    const key = row + "," + index;
-
-    // Check if the result is already in the cache
+  private memoCountValidArrangements(row: string, constraints: number[], nextChar?: string): number {
+    const key = row + constraints.join(",") + nextChar;
     if (this.memo.has(key)) {
       return this.memo.get(key)!;
     }
-
-    if (index === row.length) {
-      // Check if the arrangement is valid
-      const isValid = this.isValidArrangement(row) ? 1 : 0;
-      this.memo.set(key, isValid);
-      return isValid;
-    }
-
-    if (row[index] !== "?") {
-      const result = this.countValidArrangements(row, index + 1);
-      this.memo.set(key, result);
-      return result;
-    }
-
-    const withDamaged = this.replaceCharAt(row, index, "#");
-    const withOperational = this.replaceCharAt(row, index, ".");
-
-    const result =
-      this.countValidArrangements(withDamaged, index + 1) +
-      this.countValidArrangements(withOperational, index + 1);
-
-    // Store the result in the cache
+    const result = this.countValidArrangements(row, constraints, nextChar);
     this.memo.set(key, result);
-
     return result;
   }
 
-  private replaceCharAt(
-    str: string,
-    index: number,
-    replacement: string,
-  ): string {
-    return (
-      str.substring(0, index) +
-      replacement +
-      str.substring(index + replacement.length)
-    );
-  }
-
-  // check to see if the arrangement is valid
-  private isValidArrangement(arrangement: string): boolean {
-    const currentArrangement = [...arrangement.matchAll(/\#*/g)]
-      .map((x) => x[0])
-      .filter((x) => x !== "");
-    const possibleArrangementOfDamaged = this.possibleArrangementOfDamaged;
-
-    if (currentArrangement.length !== possibleArrangementOfDamaged.length) {
-      return false;
+  private countValidArrangements(row: string, constraints: number[], nextChar?: string): number {
+    // ???.... 0
+    // ?#?.... 0
+    if (constraints.length === 0) {
+      return row.includes("#") ? 0 : 1;
+    }
+    
+    if (row.length === 0) {
+      return 0;
     }
 
-    return possibleArrangementOfDamaged.every((x, i) => {
-      return currentArrangement[i]?.length === x;
-    });
+    if (row[0] === "?") {
+      return this.memoCountValidArrangements("." + row.substring(1), constraints, nextChar) + this.memoCountValidArrangements("#" + row.substring(1), constraints, nextChar);
+    }
+
+    if (nextChar !== undefined && row[0] !== nextChar) {
+      return 0;
+    }
+
+    if (row[0] === ".") {
+      return this.memoCountValidArrangements(row.substring(1), constraints);
+    }
+
+    const head = row.substring(0, constraints[0]);
+
+    if (head.length < constraints[0] || head.includes(".")) {
+      return 0;
+    }
+
+    if (row.startsWith(Array(constraints[0]).fill("#").join(""))) {
+      return this.memoCountValidArrangements(row.substring(constraints[0]), constraints.slice(1), ".");
+    }
+
+
+    // ##?. => 3
+    // => ?. => 1 (next must be '#')
+
+    for (let i = 1; i < constraints[0]; i++) {
+      if (row[i] === undefined) {
+        return 0;
+      }
+
+      if (row[i] === "?") {
+        return this.memoCountValidArrangements(row.substring((i)), [constraints[0] - i, ... constraints.slice(1)], "#");
+      }
+    }
+
+    // #??# => 2,2
+    // ==> ??# => 1,2
+    // ==> ?# => 1
+
+    return 0;
   }
 }
 
