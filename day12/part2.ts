@@ -83,10 +83,17 @@ class HotSpringRow {
    * @returns number
    */
   public getArrangementsPossible(): number {
-    return this.memoCountValidArrangements(this.brokenRow, this.possibleArrangementOfDamaged);
+    return this.memoCountValidArrangements(
+      this.brokenRow,
+      this.possibleArrangementOfDamaged,
+    );
   }
 
-  private memoCountValidArrangements(row: string, constraints: number[], nextChar?: string): number {
+  private memoCountValidArrangements(
+    row: string,
+    constraints: number[],
+    nextChar?: string,
+  ): number {
     const key = row + constraints.join(",") + nextChar;
     if (this.memo.has(key)) {
       return this.memo.get(key)!;
@@ -96,19 +103,34 @@ class HotSpringRow {
     return result;
   }
 
-  private countValidArrangements(row: string, constraints: number[], nextChar?: string): number {
+  private countValidArrangements(
+    row: string,
+    constraints: number[],
+    nextChar?: string,
+  ): number {
     // ???.... 0
     // ?#?.... 0
     if (constraints.length === 0) {
       return row.includes("#") ? 0 : 1;
     }
-    
+
     if (row.length === 0) {
       return 0;
     }
 
     if (row[0] === "?") {
-      return this.memoCountValidArrangements("." + row.substring(1), constraints, nextChar) + this.memoCountValidArrangements("#" + row.substring(1), constraints, nextChar);
+      return (
+        this.memoCountValidArrangements(
+          "." + row.substring(1),
+          constraints,
+          nextChar,
+        ) +
+        this.memoCountValidArrangements(
+          "#" + row.substring(1),
+          constraints,
+          nextChar,
+        )
+      );
     }
 
     if (nextChar !== undefined && row[0] !== nextChar) {
@@ -126,9 +148,12 @@ class HotSpringRow {
     }
 
     if (row.startsWith(Array(constraints[0]).fill("#").join(""))) {
-      return this.memoCountValidArrangements(row.substring(constraints[0]), constraints.slice(1), ".");
+      return this.memoCountValidArrangements(
+        row.substring(constraints[0]),
+        constraints.slice(1),
+        ".",
+      );
     }
-
 
     // ##?. => 3
     // => ?. => 1 (next must be '#')
@@ -139,7 +164,11 @@ class HotSpringRow {
       }
 
       if (row[i] === "?") {
-        return this.memoCountValidArrangements(row.substring((i)), [constraints[0] - i, ... constraints.slice(1)], "#");
+        return this.memoCountValidArrangements(
+          row.substring(i),
+          [constraints[0] - i, ...constraints.slice(1)],
+          "#",
+        );
       }
     }
 
