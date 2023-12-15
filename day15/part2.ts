@@ -80,26 +80,8 @@ class LensQueue {
       if (this.lenses[i]!.label == label) {
         this.lenses[i] = undefined;
         this.size--;
-        // now move all the lenses forward to the end of the lenses array
+        this.lenses.splice(i, 1);
 
-        let j = 0;
-        let lastLensIndex = 0;
-        const newLenses: (Lens | undefined)[] = Array(this.maxSize).fill(
-          undefined,
-        );
-        // keep going until you hit the end of the array
-        while (j < this.maxSize) {
-          if (this.lenses[j] == undefined) {
-            j++;
-            continue;
-          } else {
-            // move the lens to the end of the array
-            newLenses[lastLensIndex] = this.lenses[j];
-            lastLensIndex++;
-            j++;
-          }
-        }
-        this.lenses = newLenses;
         return true;
       }
     }
