@@ -1,7 +1,6 @@
 // read the input from puzzleInput.txt
 // Advent of Code 2023 day 15 part 2
 
-import { get } from "node:http";
 import { join as pathJoin } from "node:path";
 
 const dirname = import.meta.dir;
@@ -66,15 +65,10 @@ class LensQueue {
     if (this.findAndReplaceLens(lens.label, lens.focalLength)) {
       return;
     }
-    if (this.size == 0) {
-      this.lenses[0] = lens;
-      this.size++;
-      return;
-    } else {
-      this.lenses[this.size] = lens;
-      this.size++;
-      return;
-    }
+
+    this.lenses[this.size] = lens;
+    this.size++;
+    return;
   }
 
   public findAndRemoveLens(label: string): boolean {

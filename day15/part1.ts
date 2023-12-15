@@ -38,8 +38,6 @@ line.forEach((str: string) => {
   total += hashValue;
 });
 
-console.log(getHashValue("qp".split("")));
-
 output = total.toString();
 
 console.log(output);
