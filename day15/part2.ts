@@ -1,26 +1,25 @@
 // read the input from puzzleInput.txt
 // Advent of Code 2023 day 15 part 2
-
 import { join as pathJoin } from "node:path";
 
-const dirname = import.meta.dir;
+const dirname: string = import.meta.dir;
 
-const readInput = async () => {
+const readInput = async (): Promise<string> => {
   // return Bun.file(pathJoin(dirname, "example.txt")).text();
   return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
 };
 
-const writeOutput = async (output: string) => {
+const writeOutput = async (output: string): Promise<void> => {
   await Bun.write(pathJoin(dirname, "part2.txt"), output);
 };
 
-const input = await readInput();
-const lines = input.split(",");
+const input: string = await readInput();
+const lines: string[] = input.split(",");
 let output: string = "";
 
 // Begin day 15 part 2 code
 
-function getHashValue(chars: string[]): number {
+async function getHashValue(chars: string[]): Promise<number> {
   let currentValue = 0;
   chars.forEach((char) => {
     const asciiCodeOfChar = char.charCodeAt(0);
@@ -50,16 +49,10 @@ class Lens {
   }
 }
 
-// create a queue of lenses that has a max size of 9
-
 class LensQueue {
-  public lenses: (Lens | undefined)[] = Array<Lens>(9);
-  size: number = 0;
-  maxSize: number = 9;
-
-  constructor() {
-    this.lenses.fill(undefined);
-  }
+  public lenses: Lens[] = [];
+  private size: number = 0;
+  private maxSize: number = 9;
 
   public enqueueEqual(lens: Lens) {
     if (this.findAndReplaceLens(lens.label, lens.focalLength)) {
@@ -73,12 +66,7 @@ class LensQueue {
 
   public findAndRemoveLens(label: string): boolean {
     for (let i = 0; i < this.maxSize; i++) {
-      if (this.lenses[i] == undefined) {
-        continue;
-      }
-
-      if (this.lenses[i]!.label == label) {
-        this.lenses[i] = undefined;
+      if (this.lenses[i]?.label == label) {
         this.size--;
         this.lenses.splice(i, 1);
 
@@ -90,11 +78,8 @@ class LensQueue {
 
   private findAndReplaceLens(label: string, focalLength: number): boolean {
     for (let i = 0; i < this.maxSize; i++) {
-      if (this.lenses[i] == undefined) {
-        continue;
-      }
-      if (this.lenses[i]!.label === label) {
-        this.lenses[i]!.focalLength = focalLength;
+      if (this.lenses[i]?.label === label) {
+        this.lenses[i].focalLength = focalLength;
         return true;
       }
     }
@@ -114,35 +99,31 @@ for (let i = 0; i < 256; i++) {
 }
 
 for (const line of lines) {
-  let chars = "";
-  let labelValue = 0;
+  let label: string = "";
+  let labelValue: number = 0;
   if (line.includes("-")) {
-    chars = line.split("-")[0];
-    labelValue = getHashValue(chars.split(""));
+    label = line.split("-")[0];
+    labelValue = await getHashValue(label.split(""));
 
-    boxes[labelValue].lensSlots.findAndRemoveLens(chars);
+    boxes[labelValue].lensSlots.findAndRemoveLens(label);
   } else {
-    chars = line.split("=")[0];
-    const focalLength = parseInt(line.split("=")[1]);
-    labelValue = getHashValue(chars.split(""));
+    label = line.split("=")[0];
+    const focalLength: number = parseInt(line.split("=")[1]);
+    labelValue = await getHashValue(label.split(""));
 
-    boxes[labelValue].lensSlots.enqueueEqual(new Lens(chars, focalLength));
+    boxes[labelValue].lensSlots.enqueueEqual(new Lens(label, focalLength));
   }
 }
 
-let focusingPower = 0;
+let focusingPower: number = 0;
 for (const box of boxes) {
   if (box.lensSlots.isEmpty()) {
     continue;
   }
 
   for (const lens in box.lensSlots.lenses) {
-    if (box.lensSlots.lenses[lens] == undefined) {
-      continue;
-    }
-
-    const lensIndexFocus = parseInt(lens) + 1;
-    const currentFocalLength = box.lensSlots.lenses[lens]!.focalLength;
+    const lensIndexFocus: number = parseInt(lens) + 1;
+    const currentFocalLength: number = box.lensSlots.lenses[lens]!.focalLength;
     focusingPower += (1 + box.boxNumber) * lensIndexFocus * currentFocalLength;
   }
 }
