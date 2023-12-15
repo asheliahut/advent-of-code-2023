@@ -76,6 +76,7 @@ class LensQueue {
       if (this.lenses[i] == undefined) {
         continue;
       }
+
       if (this.lenses[i]!.label == label) {
         this.lenses[i] = undefined;
         this.size--;
