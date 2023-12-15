@@ -51,23 +51,19 @@ class Lens {
 
 class LensQueue {
   public lenses: Lens[] = [];
-  private size: number = 0;
-  private maxSize: number = 9;
 
   public enqueueEqual(lens: Lens) {
     if (this.findAndReplaceLens(lens.label, lens.focalLength)) {
       return;
     }
 
-    this.lenses[this.size] = lens;
-    this.size++;
+    this.lenses.push(lens);
     return;
   }
 
   public findAndRemoveLens(label: string): boolean {
-    for (let i = 0; i < this.maxSize; i++) {
+    for (let i = 0; i < this.lenses.length; i++) {
       if (this.lenses[i]?.label == label) {
-        this.size--;
         this.lenses.splice(i, 1);
 
         return true;
@@ -77,7 +73,7 @@ class LensQueue {
   }
 
   private findAndReplaceLens(label: string, focalLength: number): boolean {
-    for (let i = 0; i < this.maxSize; i++) {
+    for (let i = 0; i < this.lenses.length; i++) {
       if (this.lenses[i]?.label === label) {
         this.lenses[i].focalLength = focalLength;
         return true;
@@ -87,7 +83,7 @@ class LensQueue {
   }
 
   public isEmpty(): boolean {
-    return this.size == 0;
+    return this.lenses.length == 0;
   }
 }
 
@@ -117,10 +113,6 @@ for (const line of lines) {
 
 let focusingPower: number = 0;
 for (const box of boxes) {
-  if (box.lensSlots.isEmpty()) {
-    continue;
-  }
-
   for (const lens in box.lensSlots.lenses) {
     const lensIndexFocus: number = parseInt(lens) + 1;
     const currentFocalLength: number = box.lensSlots.lenses[lens]!.focalLength;
