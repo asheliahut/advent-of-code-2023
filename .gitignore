@@ -180,3 +180,6 @@ advent
 # Ignore answer txt files
 part1.txt
 part2.txt
+
+## AoC Made me use Rust.... FML
+target/
