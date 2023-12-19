@@ -85,7 +85,7 @@ for (const [distance, direction] of distanceAndDirections) {
   points.push({ x: currentPoint.x, y: currentPoint.y });
 }
 
-const area: number = calculatePolygonArea(points) + perimeter / 2 + 1;
+const area: number = calculatePolygonArea(points) + Math.ceil(perimeter / 2);
 output = area.toString();
 
 console.log(output);
