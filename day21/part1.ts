@@ -6,8 +6,8 @@ import { join as pathJoin } from "node:path";
 const dirname: string = import.meta.dir;
 
 const readInput = async (): Promise<string> => {
-  // return Bun.file(pathJoin(dirname, "example.txt")).text();
-  return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
+  return Bun.file(pathJoin(dirname, "example.txt")).text();
+  // return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
 };
 
 const writeOutput = async (output: string): Promise<void> => {
@@ -106,7 +106,7 @@ class Grid {
     return visitedMap;
   }
 
-  public fillInCellsFromMap(visitedMap: Map<Cell, number>): void {
+  public fillInCellsFromMap(visitedMap: Map<Cell, number>, numSteps: number): void {
     let isEven = false;
     if (numSteps % 2 === 0) {
       isEven = true;
@@ -195,7 +195,7 @@ for (const line of lines) {
   y++;
 }
 
-const numSteps = 64;
+const numSteps = 6;
 
 const theMap = grid.floodFill(numSteps);
 grid.fillInCellsFromMap(theMap, numSteps);
