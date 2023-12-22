@@ -106,7 +106,10 @@ class Grid {
     return visitedMap;
   }
 
-  public fillInCellsFromMap(visitedMap: Map<Cell, number>, numSteps: number): void {
+  public fillInCellsFromMap(
+    visitedMap: Map<Cell, number>,
+    numSteps: number,
+  ): void {
     let isEven = false;
     if (numSteps % 2 === 0) {
       isEven = true;

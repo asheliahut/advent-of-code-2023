@@ -6,8 +6,8 @@ import { join as pathJoin } from "node:path";
 const dirname: string = import.meta.dir;
 
 const readInput = async (): Promise<string> => {
-  return Bun.file(pathJoin(dirname, "example.txt")).text();
-  // return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
+  // return Bun.file(pathJoin(dirname, "example.txt")).text();
+  return Bun.file(pathJoin(dirname, "puzzleInput.txt")).text();
 };
 
 const writeOutput = async (output: string): Promise<void> => {
@@ -30,7 +30,6 @@ class Cell {
   public x: number;
   public y: number;
   public value: CellType;
-  public visited: boolean = false;
 
   constructor(x: number, y: number, cellType: CellType) {
     this.x = x;
@@ -58,81 +57,6 @@ class Grid {
     this.cells[y][x].value = cellType;
   }
 
-  // clone the current grid and replicate Grid in all directions
-  public expandGrid(expandGridBy: number): void {
-    if (expandGridBy < 1)
-      throw new Error("expandGridBy must be a positive number.");
-
-    const newCells: Cell[][] = [];
-    const oldCells: Cell[][] = this.cells;
-    const initialRowLength: number = oldCells[0].length;
-    const initialColLength: number = oldCells.length;
-    const initialStartCell: Cell = this.getStartCell();
-    initialStartCell.value = ".";
-
-    for (
-      let rowCloneIndex = 0;
-      rowCloneIndex < expandGridBy * initialColLength;
-      rowCloneIndex++
-    ) {
-      const newRow: Cell[] = [];
-
-      for (
-        let colCloneIndex = 0;
-        colCloneIndex < expandGridBy * initialRowLength;
-        colCloneIndex++
-      ) {
-        const originalRow = rowCloneIndex % initialColLength;
-        const originalCol = colCloneIndex % initialRowLength;
-        const cellToClone = oldCells[originalRow][originalCol];
-        newRow.push(
-          this.cloneCell(
-            cellToClone,
-            colCloneIndex,
-            rowCloneIndex,
-            initialRowLength,
-            initialColLength,
-          ),
-        );
-      }
-
-      newCells.push(newRow);
-    }
-
-    this.cells = newCells;
-    // Reposition the start cell if needed
-    this.repositionStartCell(
-      initialStartCell,
-      initialRowLength,
-      initialColLength,
-      expandGridBy,
-    );
-  }
-
-  private cloneCell(
-    cell: Cell,
-    colCloneIndex: number,
-    rowCloneIndex: number,
-    rowLength: number,
-    colLength: number,
-  ): Cell {
-    const newX = cell.x + ~~(colCloneIndex / colLength) * rowLength;
-    const newY = cell.y + ~~(rowCloneIndex / rowLength) * colLength;
-    return new Cell(newX, newY, cell.value);
-  }
-
-  private repositionStartCell(
-    startCell: Cell,
-    rowLength: number,
-    colLength: number,
-    expandGridBy: number,
-  ): void {
-    const newX = startCell.x + rowLength * ~~(expandGridBy / 2);
-    const newY = startCell.y + colLength * ~~(expandGridBy / 2);
-    // console.log(`New start cell: ${newX}, ${newY}`);
-    this.setCell(newX, newY, "S");
-  }
-
   public getNumberOfMarkedCells(): number {
     let numberOfMarkedCells: number = 0;
     for (const row of this.cells) {
@@ -143,18 +67,6 @@ class Grid {
       }
     }
     return numberOfMarkedCells;
-  }
-
-  public getNumberOfRockCells(): number {
-    let numberOfRockCells: number = 0;
-    for (const row of this.cells) {
-      for (const cell of row) {
-        if (cell.value === "#") {
-          numberOfRockCells++;
-        }
-      }
-    }
-    return numberOfRockCells;
   }
 
   public getStartCell(): Cell {
@@ -169,98 +81,65 @@ class Grid {
     throw new Error("No start cell found");
   }
 
-  public floodFill(numberOfSteps: number): void {
+  public floodFill(): Map<Cell, number> {
     const startCell: Cell = this.getStartCell();
-    // console.log(`Start cell: ${startCell.x}, ${startCell.y}`);
+    const visitedMap: Map<Cell, number> = new Map();
     const queue: [Cell[], number][] = [];
     queue.push([[startCell], 0]);
-    let steps: number = 0;
 
-    while (queue.length > 0 && steps < numberOfSteps) {
+    while (queue.length > 0) {
       const [cells, currentStep] = queue.shift() as [Cell[], number];
       const neighbours: Cell[] = [];
+      const nextStep: number = currentStep + 1;
 
       for (const cell of cells) {
-        // console.log(cell, steps);
-        // visitedMap.set(cell, steps);
-        if(cell.visited) {
+        if (visitedMap.has(cell)) {
           continue;
         }
-
-        cell.visited = true;
-        if (steps % 2 === 1) {
-          this.setCell(cell.x, cell.y, "O");
-        } else {
-          this.setCell(cell.x, cell.y, ".");
-        }
-
-        neighbours.push(...this.getNeighbours(cell));
+        visitedMap.set(cell, currentStep);
+        neighbours.push(...this.getNeighbours(cell, visitedMap));
       }
 
-      steps = currentStep + 1;
-
-      queue.push([neighbours, steps]);
+      if (neighbours.length === 0) {
+        continue;
+      }
+      queue.push([neighbours, nextStep]);
       // console.log("--------------------");
-      // console.log(steps);
+      // console.log(currentStep);
       // console.log(neighbours.length);
       // console.log(this.toString());
       // console.log("--------------------");
     }
+
+    return visitedMap;
   }
 
-  public fillInCellsFromMap(
-    visitedMap: Map<Cell, number>,
-    numSteps: number,
-  ): void {
-    let isEven = false;
-    if (numSteps % 2 === 0) {
-      isEven = true;
-    }
-
-    for (const [cell, steps] of visitedMap) {
-      // console.log(cell, steps);
-      if (steps % 2 === 1) {
-        this.setCell(cell.x, cell.y, "O");
-      }
-    }
-  }
-
-  private getNeighbours(
-    cell: Cell
-  ): Cell[] {
+  private getNeighbours(cell: Cell, visitedMap: Map<Cell, number>): Cell[] {
     const neighbours: Cell[] = [];
     const x: number = cell.x;
     const y: number = cell.y;
 
-    if (x > 0 && this.getCell(x - 1, y).value !== "#") {
-      if (!this.getCell(x - 1, y).visited) {
+    if (x > 0) {
+      if (
+        !visitedMap.has(this.getCell(x - 1, y)) &&
+        this.getCell(x - 1, y).value !== "#"
+      ) {
         neighbours.push(this.getCell(x - 1, y));
-      
-        // neighbours.push(this.getCell(x - 1, y));
-        // visitedMap.set(this.getCell(x - 1, y), curStep + 1);
       }
     }
     if (x < this.cells[y].length - 1 && this.getCell(x + 1, y).value !== "#") {
-      if (!this.getCell(x + 1, y).visited) {
+      if (!visitedMap.has(this.getCell(x + 1, y))) {
         neighbours.push(this.getCell(x + 1, y));
-
-        // neighbours.push(this.getCell(x + 1, y));
-        // visitedMap.set(this.getCell(x + 1, y), curStep + 1);
       }
     }
     if (y > 0 && this.getCell(x, y - 1).value !== "#") {
-      if (!this.getCell(x, y - 1).visited) {
+      if (!visitedMap.has(this.getCell(x, y - 1))) {
         neighbours.push(this.getCell(x, y - 1));
-        // neighbours.push(this.getCell(x, y - 1));
-        // visitedMap.set(this.getCell(x, y - 1), curStep + 1);
       }
     }
     if (y < this.cells.length - 1 && this.getCell(x, y + 1).value !== "#") {
-      if (!this.getCell(x, y + 1).visited) {
-        neighbours.push(this.getCell(x, y + 1))
-
-        // neighbours.push(this.getCell(x, y + 1));
-        // visitedMap.set(this.getCell(x, y + 1), curStep + 1);
+      if (!visitedMap.has(this.getCell(x, y + 1))) {
+        neighbours.push(this.getCell(x, y + 1));
       }
     }
 
@@ -296,36 +175,32 @@ for (const line of lines) {
   y++;
 }
 
-grid.expandGrid(10);
-console.log("Expanded grid");
+const theMap = grid.floodFill();
+const arrFromVisitedMap = Array.from(theMap.values());
 
-// console.log(grid.toString());
-// const numSteps = 26_501_365 + 2;
-const numSteps = 5;
-// number of O's on start row = numSteps + 1
-// height of the diamond = numSteps * 2 53,002,730
-// width of the diamond = numSteps + 1 26,501,366
-// area of the diamond = ((numSteps + 1) * (numSteps * 2)) / 2 = 702,322,373,364,590
-// remove half of that 351,161,186,682,295 This is to low
-// 526,741,780,023,442 is to low
+const evenCorners = arrFromVisitedMap.filter((v: number) => {
+  return v % 2 === 0 && v > 65;
+}).length;
 
-// console.log(`Start cell: ${grid.getStartCell().x}, ${grid.getStartCell().y}`);
-// const cheekyLittleHack = (202_300 * 15081 + 3742);
-grid.floodFill(numSteps);
-// grid.fillInCellsFromMap(theMap, numSteps);
-console.log(grid.toString());
-// console.log(`Number of rock cells: ${grid.getNumberOfRockCells()}`);
-// console.log(`Size of Grid ${grid.cells.length} x ${grid.cells[0].length}`);
-output = grid.getNumberOfMarkedCells().toString();
+const oddCorners = arrFromVisitedMap.filter((v: number) => {
+  return v % 2 === 1 && v > 65;
+}).length;
 
-//3682
-//             10_738
-// 14_420
-//             17_557
-// 31_977
+// prime facorization of the number of steps for part 2 26_501_365
+// (202_300 * 131) + 65
+// 65 is my number of steps to first escape the single grid can find corners this way
+const n = 202300;
 
-// 74_405_000 at 202_300 at 100 expanded grid
-//            at 202_300 at 102 expanded grid
+const evenVal = n * n;
+const oddVal = (n + 1) * (n + 1);
+
+const total =
+  evenVal * arrFromVisitedMap.filter((v: number) => v % 2 === 0).length +
+  oddVal * arrFromVisitedMap.filter((v: number) => v % 2 === 1).length -
+  (n + 1) * oddCorners +
+  n * evenCorners;
+
+output = total.toString();
+
 console.log(output);
 await writeOutput(output);
-await writeGridOutput(grid.toString());
